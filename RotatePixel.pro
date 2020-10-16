@@ -32,4 +32,5 @@ HEADERS += \
         mainwindow.h \
     rotatepixelcoordinats.h
 
-FORMS +=
+FORMS += mainwindow.ui
+

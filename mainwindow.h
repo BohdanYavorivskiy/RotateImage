@@ -27,8 +27,8 @@ public:
 private:
     QPixmap createRotateImage();
 
-    QVector<quint8> dataFromPixel(const QVector<QColor> &pixels, int brightness);
-    void printLine(const QVector<quint8> data, int lineIndex);
+    QVector<QColor> dataFromPixel(const QVector<QColor> &pixels, int brightness);
+    void printLine(const QVector<QColor> data, int lineIndex);
     void printHead(int lineCount, int lineLength);
     void setupUi();
     void showImage();

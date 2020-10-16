@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
     setupUi();/*apple.jpg*/ /*test.png*/ /*pacman.jpg*/ /*packman_1.jpg*/
-    loadImage("/home/bohdan/Pictures/lisa-simpson-lisa-simpson-640542_500_500.jpg");
+    loadImage("C:\\Users\\BohdanY\\Pictures\\rik.jpg");
     showImage();
 
     _rotateImageViewer->setPixmap(createRotateImage());
@@ -49,6 +49,7 @@ QPixmap MainWindow::createRotateImage()
 
     const double sectionCont {100};
     const double radElement {_rotate->rotatePixelRadius()};
+    _rotate->setCountPixelInLine(32);
 
     printHead(sectionCont, _rotate->countPixelInLine() - 1);
 
@@ -66,18 +67,18 @@ QPixmap MainWindow::createRotateImage()
             painter.setBrush(brush);
 
             QPointF rotateCoordinats {_rotate->getRotateCoordinats((360.0 / sectionCont) * v, _rotate->radiusForRotatePixel(i))};
-            painter.drawEllipse(rotateCoordinats, radElement * 0.5, radElement * 0.5);
+            painter.drawEllipse(rotateCoordinats, radElement * 0.2, radElement * 0.2);
         }
 
-        QVector<quint8> data = dataFromPixel(lineLed, 9);
-        printLine(data, v);
+//        QVector<QColor> data = dataFromPixel(lineLed, 9);
+        printLine(lineLed, v);
     }
     return pixmap;
 }
 
-QVector<quint8> MainWindow::dataFromPixel(const QVector<QColor> &pixels, int brightness)
+QVector<QColor> MainWindow::dataFromPixel(const QVector<QColor> &pixels, int brightness)
 {
-    QVector<quint8> data;
+    QVector<QColor> data;
 
     const double brightnessCoef {1.11};
 
@@ -86,20 +87,37 @@ QVector<quint8> MainWindow::dataFromPixel(const QVector<QColor> &pixels, int bri
     {
         const double brightnessMultipler = brightnessBase + (brightness / brightnessCoef) * ((i + 1) / static_cast<double>(pixels.count()));
 
-        data.push_back(qGreen(pixels[i].rgb()) * (brightnessMultipler / 100.0));
-        data.push_back(qRed(pixels[i].rgb()) * (brightnessMultipler / 100.0));
-        data.push_back(qBlue(pixels[i].rgb()) * (brightnessMultipler / 100.0));
+        QColor pixel;
+        pixel.setGreen(qGreen(pixels[i].rgb()) /** (brightnessMultipler / 100.0)*/);
+        pixel.setRed(qRed(pixels[i].rgb()) /** (brightnessMultipler / 100.0)*/);
+        pixel.setBlue(qBlue(pixels[i].rgb()) /** (brightnessMultipler / 100.0)*/);
+        data.push_back(pixel);
     }
     return data;
 }
 
-void MainWindow::printLine(const QVector<quint8> data, int lineIndex)
+void MainWindow::printLine(const QVector<QColor> data, int lineIndex)
 {
-    QString s;
-    for(int i = 0; i < data.size(); ++i)
-        s += QString("0x%2, ").arg(QString::number(data[i], 16));
-//        s += QString("*(arrayPix + (%0 * lineLength + %1)) = 0x%2; ").arg(lineIndex).arg(i).arg(QString::number(data[i], 16));
-    qDebug().noquote() << s;
+    constexpr quint8 PixelPrefix{0xE0 | 0x01};
+
+    const auto pixelToStr = [](quint8 pixelPrefix, quint8 green, quint8 red,
+                               quint8 blue) {
+      return QString("0x%0, 0x%1, 0x%2, 0x%3,")
+          .arg(QString::number(pixelPrefix, 16))
+          .arg(QString::number(blue, 16))
+          .arg(QString::number(green, 16))
+          .arg(QString::number(red, 16));
+
+    };
+
+    qDebug().noquote() << pixelToStr(0x00, 0x00, 0x00, 0x00);
+
+    for (int i =  data.size() - 1; i >= 0; --i) {
+      qDebug().noquote() << pixelToStr(PixelPrefix, data[i].green(),
+                                       data[i].red(), data[i].blue());
+    }
+
+    qDebug().noquote() << pixelToStr(0xFF, 0xFF, 0xFF, 0xFF);
 }
 
 void MainWindow::printHead(int lineCount, int lineLength)
